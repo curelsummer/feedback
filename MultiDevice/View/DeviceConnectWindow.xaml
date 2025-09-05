@@ -1,0 +1,45 @@
+﻿<Window x:Class="MultiDevice.DeviceConnectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MultiDevice"
+        xmlns:Lay="clr-namespace:LayUI.Wpf.Controls;assembly=LayUI.Wpf"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="SingleBorderWindow" 
+        ResizeMode="NoResize" 
+        Icon="../image/icon.ico"
+        Title="脑电设备连接" Height="220" Width="400"
+        Loaded="Window_Loaded"
+        Topmost="True"
+        Background="#e0e0e0">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10">
+            <!-- 设备连接图标 -->
+            <TextBlock FontFamily="Segoe MDL2 Assets" x:Name="deviceStatusIcon"
+               FontSize="64" 
+               Text="&#xE839;" 
+               HorizontalAlignment="Center" 
+               Margin="0,0,0,10"/>
+
+            <!-- 设备名称 -->
+            <TextBlock Text="等待自动连接设备..." 
+                       FontSize="16" 
+                       HorizontalAlignment="Center" 
+                       Margin="0,10,0,10"
+                       x:Name="deviceNameLabel"/>
+
+            <!-- 连接设备按钮 -->
+            <Lay:LayButton Content="连接设备" 
+                    Width="140" 
+                    Height="35" 
+                    Cursor="Hand"
+                    Name="connectDeviceButon"
+                    Click="connectDeviceButon_Click"
+                    IsEnabled="False"
+                    Type="Customize"
+                    />
+        </StackPanel>
+    </Grid>
+</Window>

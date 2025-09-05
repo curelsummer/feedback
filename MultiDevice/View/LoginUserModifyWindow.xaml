@@ -1,0 +1,44 @@
+﻿<Window x:Class="MultiDevice.LoginUserModifyWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MultiDevice"
+        xmlns:Lay="clr-namespace:LayUI.Wpf.Controls;assembly=LayUI.Wpf"
+        mc:Ignorable="d"
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanMinimize" 
+        Title="用户信息修改" Height="360" Width="420">
+    <Grid Margin="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Row="0" Grid.Column="0" Content="旧用户名:" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Lay:LayTextBox  Grid.Row="0" Grid.Column="1" Watermark="" Width="210" x:Name="OldUserNameEdit"/>
+            
+            <Label Grid.Row="1" Grid.Column="0" Content="旧密码:" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Lay:LayPasswordBox  Grid.Row="1" Grid.Column="1" Width="210" x:Name="OldPasswordEdit"/>
+            
+            <Label Grid.Row="2" Grid.Column="0" Content="新用户名:" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Lay:LayTextBox  Grid.Row="2" Grid.Column="1" Watermark="" Width="210" x:Name="NewUserNameEdit"/>
+            
+            <Label Grid.Row="3" Grid.Column="0" Content="新密码:" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Lay:LayPasswordBox  Grid.Row="3" Grid.Column="1" Width="210" x:Name="NewPasswrodEdit"/>
+
+            <Lay:LayButton Grid.Row="4" Grid.Column="1" Content="修改" Type="Customize" Width="210" x:Name="ModifyButton" Click="ModifyButton_Click"/>
+        </Grid>
+    </Grid>
+</Window>

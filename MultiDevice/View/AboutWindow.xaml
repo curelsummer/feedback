@@ -1,0 +1,31 @@
+﻿<Window x:Class="MultiDevice.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MultiDevice"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanMinimize" 
+        mc:Ignorable="d"
+        Title="关于软件" Height="310" Width="500">
+       <Grid Margin="20">
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Orientation="Vertical">
+            <!-- 软件名称 -->
+            <TextBlock Text="软件名称：软件终端" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+            <!-- 规格型号 -->
+            <TextBlock Text="规格型号：Terminal" FontSize="16"  FontWeight="Bold" Margin="0,0,0,10"/>
+            <!-- Hash值 -->
+            <TextBlock Text="Hash值：ece5616e633313c03de2f5a395eac3ce"  FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+            <!-- 软件发布版本号 -->
+            <TextBlock Text="软件发布版本号：V1.1" FontSize="16"  FontWeight="Bold" Margin="0,0,0,10"/>
+            <!-- 注册人名称/生产企业名称 -->
+            <TextBlock Text="注册人名称/生产企业名称：江西杰联医疗设备有限公司"  FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+            <!-- 注册人住所/生产企业住所 -->
+            <TextBlock Text="注册人住所/生产企业住所：江西省赣江新区直管区中医药科创城公共服务及公共研发中心10号楼12层" 
+                       TextWrapping="Wrap" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+            <!-- 注册人联系方式/生产企业联系方式 -->
+            <TextBlock Text="注册人联系方式/生产企业联系方式：0791-83062456"  FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,46 @@
+﻿<Window x:Class="MultiDevice.VideoCapture"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MultiDevice"
+        mc:Ignorable="d"
+        ResizeMode="CanResizeWithGrip"
+        Closing="Window_Closing" 
+        Title="VideoCapture" Height="720" Width="800">
+
+    <Grid Name="root_grid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*" ></RowDefinition>
+            <RowDefinition Height="10*"></RowDefinition>
+            <RowDefinition Height="1*" ></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid Name="video_grid" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="9"></Grid>
+        <Label Name="hint_label" Grid.Row="0" Grid.Column="0" VerticalContentAlignment="Center" Grid.ColumnSpan="9"></Label>
+        <ComboBox Name="combo_v_devices" SelectedIndex="0" Grid.Column="0" Grid.Row="2" SelectionChanged="combo_v_devices_SelectionChanged"  Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"></ComboBox>
+        <!--<ComboBox Name="combo_v_devices" SelectedIndex="0" Grid.Column="0" Grid.Row="2" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"></ComboBox>-->
+        <ComboBox Name="combo_a_devices" SelectedIndex="0" Grid.Column="1" Grid.Row="2" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"></ComboBox>
+        <ComboBox Name="combo_resolution"  SelectedIndex="0" Grid.Column="2" Grid.Row="2"  SelectionChanged="combo_resolution_SelectionChanged" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"></ComboBox>
+        <ComboBox Name="combo_v_quality"  SelectedIndex="1" Grid.Column="3" Grid.Row="2" Margin="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+            <ComboBoxItem HorizontalContentAlignment="Center">低质量</ComboBoxItem>
+            <ComboBoxItem HorizontalContentAlignment="Center">中质量</ComboBoxItem>
+            <ComboBoxItem HorizontalContentAlignment="Center">高质量</ComboBoxItem>
+        </ComboBox>
+        <Button x:Name="video_Start" Content="开始录制" Grid.Column="4" Grid.Row="2" Margin="5" Click="video_Start_Click" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <CheckBox Name="need_audio" Grid.Row="2" Grid.Column="5" VerticalContentAlignment="Center">录音</CheckBox>
+        <Button x:Name="take_shot" Content="拍摄照片" IsEnabled="False" Grid.Column="6" Grid.Row="2" Margin="5" Click="take_shot_Click"  VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <Label x:Name="video_time" Content="00:00:00" Grid.Column="7" Grid.Row="2"  Margin="5"  VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <Button x:Name="record_end" Content="结束录制" IsEnabled="False" Grid.Column="8" Grid.Row="2" Margin="5" Click="record_end_Click"  VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+    </Grid>
+</Window>
