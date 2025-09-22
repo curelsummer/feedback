@@ -277,6 +277,8 @@
     <Compile Include="FastReportHelper\FastReportHelper.cs" />
     <Compile Include="FTP\FTPClientHelper.cs" />
     <Compile Include="GameApp\GameAppRunHelper.cs" />
+    <Compile Include="GameApp\GameRunTask.cs" />
+    <Compile Include="GameApp\GameSequenceScheduler.cs" />
     <Compile Include="Indices\IndiceToBytes.cs" />
     <Compile Include="Models\LogUserInfoModel.cs" />
     <Compile Include="Models\ReportResultModel.cs" />
@@ -466,6 +468,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Config\GameSequence.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

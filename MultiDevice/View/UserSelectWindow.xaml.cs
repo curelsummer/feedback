@@ -39,8 +39,7 @@ namespace MultiDevice
             ParadigmComboBox.ItemsSource   = SQLiteDBService.DB.ReadConfigKeys("paradigmSetting");
             ParadigmComboBox.SelectedIndex = 0;
 
-            GameListComboBox.ItemsSource = paradigmSettingsModel.GameList.Keys;
-            GameListComboBox.SelectedIndex = 0;
+            GameListBox.ItemsSource = paradigmSettingsModel.GameList.Keys;
         }
 
         private void InitUI()
@@ -139,8 +138,17 @@ namespace MultiDevice
             gameConfigModel = new GameConfigModel();
             gameConfigModel.paradigmSettings = paradigmSettingsModel;
 
-            // 设置游戏参数
-            gameConfigModel.Game = paradigmSettingsModel.GameList[GameListComboBox.Text];
+            // 设置游戏参数（支持多选）
+            var selectedDisplayNames = GameListBox.SelectedItems.Cast<string>().ToList();
+            if (selectedDisplayNames.Count == 0)
+            {
+                Message.ShowWarning("游戏准备", "请至少选择一个游戏!", TimeSpan.FromSeconds(3));
+                return;
+            }
+            var selectedGameCodes = selectedDisplayNames.Select(d => paradigmSettingsModel.GameList[d]).ToList();
+            gameConfigModel.GameSequence = selectedGameCodes;
+            // 保持向后兼容：若只选一个，仍写入 Game
+            gameConfigModel.Game = selectedGameCodes.First();
             gameConfigModel.SessionTotal = SessionTotal.Value.ToString();
             gameConfigModel.SessionNum = SessionNum.Value.ToString();
             gameConfigModel.EpochCount = EpochCount.Value.ToString();

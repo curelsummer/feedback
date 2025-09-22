@@ -251,7 +251,12 @@ namespace MultiDevice
             }
             this.Close();
         }
-
+        private void BtnStopMeasuringold(object sender, RoutedEventArgs e)
+        {
+            this.svr.StopImpedanceDetect();
+            this.Close();
+        }
+        
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (!startDetect)

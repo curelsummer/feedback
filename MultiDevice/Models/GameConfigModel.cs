@@ -10,6 +10,7 @@ namespace MultiDevice
     {
         public ParadigmSettingsModel paradigmSettings { get; set; }
         public string Game {  get; set; }
+        public List<string> GameSequence { get; set; }
         public string SessionTotal { get; set; }
         public string SessionNum { get; set; }
         public string EpochCount { get; set; }

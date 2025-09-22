@@ -40,12 +40,19 @@ namespace MultiDevice
 
         public void AutoRunGameApp()
         {
-            CheckAndStartProcess("Trainer", AppDomain.CurrentDomain.BaseDirectory + "GameAppBin\\Trainer.exe");
+            CheckAndStartProcess("Trainer", AppDomain.CurrentDomain.BaseDirectory + "GameAppBin\\Trainer.exe", null);
+        }
+
+        public void AutoRunGameApp(string processName, string exePath, string args)
+        {
+            if (string.IsNullOrWhiteSpace(processName)) processName = "Trainer";
+            if (string.IsNullOrWhiteSpace(exePath)) exePath = AppDomain.CurrentDomain.BaseDirectory + "GameAppBin\\Trainer.exe";
+            CheckAndStartProcess(processName, exePath, args);
         }
 
         public void AutoRunSeverApp()
         {
-            CheckAndStartProcess("AdaptiveNFBTerminalSever", AppDomain.CurrentDomain.BaseDirectory + "AppServerBin\\AdaptiveNFBTerminalSever.exe");
+            CheckAndStartProcess("AdaptiveNFBTerminalSever", AppDomain.CurrentDomain.BaseDirectory + "AppServerBin\\AdaptiveNFBTerminalSever.exe", null);
         }
 
 
@@ -60,7 +67,7 @@ namespace MultiDevice
             CloseProcessByName("Trainer");
         }
 
-        private void CheckAndStartProcess(string processName, string processPath)
+        private void CheckAndStartProcess(string processName, string processPath, string args)
         {
             if (!IsProcessRunning(processName))
             {
@@ -70,6 +77,10 @@ namespace MultiDevice
                 }
                 Process process = new Process();
                 process.StartInfo.FileName = processPath;
+                if (!string.IsNullOrWhiteSpace(args))
+                {
+                    process.StartInfo.Arguments = args;
+                }
                 process.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
                 process.Start();
                 LogHelper.Log.LogDebug("检测到游戏App未启动,自动启动游戏App");

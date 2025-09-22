@@ -58,6 +58,9 @@ namespace MultiDevice
                 DialogResult = true;
 
             }
+
+            //测试跳过
+            DialogResult = true;
             Close();
         }
 

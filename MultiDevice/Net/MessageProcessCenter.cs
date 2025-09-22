@@ -43,6 +43,69 @@ namespace MultiDevice.Net
             {
                 case "Message":
                     break;
+                case "StartSave":
+                    {
+                        HandleStartSave(message.data);
+                        try
+                        {
+                            if (App.deviceMainWindow != null)
+                            {
+                                if (Application.Current.Dispatcher.CheckAccess())
+                                {
+                                    App.deviceMainWindow.SetSavingUiState(true);
+                                    // 关闭阻抗窗口（参考 BtnStopMeasuringold）
+                                    if (App.impedanceDetectWindow != null)
+                                    {
+                                        App.impedanceDetectWindow.svr.StopImpedanceDetect();
+                                        App.impedanceDetectWindow.Close();
+                                        App.impedanceDetectWindow = null;
+                                    }
+                                    Message.ShowSuccessTopMost("数据保存", "开始保存成功!", TimeSpan.FromSeconds(2));
+                                }
+                                else
+                                {
+                                    Application.Current.Dispatcher.Invoke(() =>
+                                    {
+                                        App.deviceMainWindow.SetSavingUiState(true);
+                                        if (App.impedanceDetectWindow != null)
+                                        {
+                                            App.impedanceDetectWindow.svr.StopImpedanceDetect();
+                                            App.impedanceDetectWindow.Close();
+                                            App.impedanceDetectWindow = null;
+                                        }
+                                        Message.ShowSuccessTopMost("数据保存", "开始保存成功!", TimeSpan.FromSeconds(2));
+                                    });
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                    break;
+                case "AbortSave":
+                    {
+                        HandleAbortSave();
+                        try
+                        {
+                            if (App.deviceMainWindow != null)
+                            {
+                                if (Application.Current.Dispatcher.CheckAccess())
+                                {
+                                    App.deviceMainWindow.SetSavingUiState(false);
+                                    Message.ShowSuccessTopMost("数据保存", "保存结束", TimeSpan.FromSeconds(2));
+                                }
+                                else
+                                {
+                                    Application.Current.Dispatcher.Invoke(() =>
+                                    {
+                                        App.deviceMainWindow.SetSavingUiState(false);
+                                        Message.ShowSuccessTopMost("数据保存", "保存结束", TimeSpan.FromSeconds(2));
+                                    });
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                    break;
                 case "ShowUserList":
                     {
                         ObservableCollection<UserInfoModel> userList = JsonConvert.DeserializeObject<ObservableCollection<UserInfoModel>>(message.data);
@@ -137,6 +200,123 @@ namespace MultiDevice.Net
             }
         }
 
+        private void HandleStartSave(string data)
+        {
+            try
+            {
+                if (App.deviceMainWindow == null || App.deviceMainWindow.comDevice == null)
+                {
+                    NetHelper.Net.sendMessageToSever(false, Cmd.StartSave, "设备窗口不存在或设备未就绪");
+                    return;
+                }
+
+                var device = App.deviceMainWindow.comDevice;
+                if (device.isSaving)
+                {
+                    NetHelper.Net.sendMessageToSever(true, Cmd.StartSave, "已在保存中");
+                    return;
+                }
+
+                string baseDir = System.AppDomain.CurrentDomain.BaseDirectory;
+                string dataDir = System.IO.Path.Combine(baseDir, "Data");
+                if (!System.IO.Directory.Exists(dataDir))
+                {
+                    System.IO.Directory.CreateDirectory(dataDir);
+                }
+
+                // 解析用户名：优先 message.data，其次 App.CurrentUser.Name
+                string userNameResolved = null;
+                if (!string.IsNullOrEmpty(data))
+                {
+                    try
+                    {
+                        var jo = JObject.Parse(data);
+                        userNameResolved = jo["UserName"]?.ToString();
+                        if (string.IsNullOrWhiteSpace(userNameResolved))
+                        {
+                            var userInfo = jo["UserInfo"]?.ToString();
+                            if (!string.IsNullOrEmpty(userInfo))
+                            {
+                                var jUser = JObject.Parse(userInfo);
+                                userNameResolved = jUser["Name"]?.ToString();
+                            }
+                        }
+                    }
+                    catch { }
+                }
+                if (string.IsNullOrWhiteSpace(userNameResolved) && App.CurrentUser != null)
+                {
+                    userNameResolved = App.CurrentUser.Name;
+                }
+                if (string.IsNullOrWhiteSpace(userNameResolved))
+                {
+                    NetHelper.Net.sendMessageToSever(false, Cmd.StartSave, "缺少用户名，无法开始保存");
+                    return;
+                }
+
+                // 校验占位/未知用户名
+                var placeholderNames = new string[] { "未知", "unknown", "x" };
+                if (placeholderNames.Any(p => string.Equals(p, userNameResolved.Trim(), StringComparison.OrdinalIgnoreCase)))
+                {
+                    NetHelper.Net.sendMessageToSever(false, Cmd.StartSave, "用户名无效(未知/Unknown/X)");
+                    return;
+                }
+
+                // 清理非法文件名字符
+                var invalidChars = System.IO.Path.GetInvalidFileNameChars();
+                userNameResolved = new string(userNameResolved.Where(ch => !invalidChars.Contains(ch)).ToArray());
+
+                // 日期文件夹 + 日期时间_用户名 文件名
+                string dateFolder = DateTime.Now.ToString("yyyyMMdd");
+                string targetDir = System.IO.Path.Combine(dataDir, dateFolder);
+                if (!System.IO.Directory.Exists(targetDir))
+                {
+                    System.IO.Directory.CreateDirectory(targetDir);
+                }
+                string fileName = DateTime.Now.ToString("yyyyMMddHHmm") + "_" + userNameResolved;
+                string fullBasePath = System.IO.Path.Combine(targetDir, fileName);
+                device.BDFFilePath = fullBasePath; // 属性内会自动加 .BDF
+                device.startSaveBDF();
+
+                NetHelper.Net.sendMessageToSever(true, Cmd.StartSave, "开始保存", new JObject
+                {
+                    ["filePath"] = device.BDFFilePath,
+                    ["userName"] = userNameResolved,
+                    ["date"] = dateFolder
+                }.ToString(Formatting.None));
+            }
+            catch (Exception ex)
+            {
+                NetHelper.Net.sendMessageToSever(false, Cmd.StartSave, $"开始保存失败:{ex.Message}");
+            }
+        }
+
+        private void HandleAbortSave()
+        {
+            try
+            {
+                if (App.deviceMainWindow == null || App.deviceMainWindow.comDevice == null)
+                {
+                    NetHelper.Net.sendMessageToSever(false, Cmd.AbortSave, "设备窗口不存在或设备未就绪");
+                    return;
+                }
+
+                var device = App.deviceMainWindow.comDevice;
+                if (!device.isSaving)
+                {
+                    NetHelper.Net.sendMessageToSever(true, Cmd.AbortSave, "未在保存");
+                    return;
+                }
+
+                device.StopSaveBDF();
+                NetHelper.Net.sendMessageToSever(true, Cmd.AbortSave, "保存已结束");
+            }
+            catch (Exception ex)
+            {
+                NetHelper.Net.sendMessageToSever(false, Cmd.AbortSave, $"结束保存失败:{ex.Message}");
+            }
+        }
+
         #region 开始游戏准备
         // 游戏开始
         public void GamePrepare(string gameData)
@@ -178,7 +358,58 @@ namespace MultiDevice.Net
             }
             // 组合游戏信息  
             gameConfigModel.paradigmSettings = JsonConvert.DeserializeObject<ParadigmSettingsModel>(paradigmConfig);
-            gameConfigModel.Game = gameConfigModel.paradigmSettings.GameList[gameConfigToken["Game"].ToString()];
+
+            // 映射函数：输入可能是显示名或代码，输出为代码
+            Func<string, string> mapToGameCode = (input) =>
+            {
+                if (string.IsNullOrWhiteSpace(input)) return null;
+                // 显示名 -> 代码
+                if (gameConfigModel.paradigmSettings.GameList.ContainsKey(input))
+                {
+                    return gameConfigModel.paradigmSettings.GameList[input];
+                }
+                // 已是代码
+                if (gameConfigModel.paradigmSettings.GameList.Values.Contains(input))
+                {
+                    return input;
+                }
+                // 未匹配
+                return null;
+            };
+
+            // 优先解析 GameSequence（多游戏）
+            var seqToken = gameConfigToken["GameSequence"];
+            if (seqToken != null && seqToken.Type == JTokenType.Array)
+            {
+                var codes = new List<string>();
+                foreach (var item in (JArray)seqToken)
+                {
+                    string val = item.ToString();
+                    string code = mapToGameCode(val);
+                    if (!string.IsNullOrWhiteSpace(code))
+                    {
+                        codes.Add(code);
+                    }
+                }
+                if (codes.Count > 0)
+                {
+                    gameConfigModel.GameSequence = codes;
+                    gameConfigModel.Game = codes[0];
+                }
+            }
+
+            // 兼容：若没有序列或为空，则解析单个 Game 字段
+            if (gameConfigModel.GameSequence == null || gameConfigModel.GameSequence.Count == 0)
+            {
+                string gameField = gameConfigToken["Game"]?.ToString();
+                string code = mapToGameCode(gameField);
+                if (string.IsNullOrWhiteSpace(code))
+                {
+                    NetHelper.Net.sendMessageToSever(false, Cmd.ShowTips, $"未知的游戏标识: {gameField}");
+                    return;
+                }
+                gameConfigModel.Game = code;
+            }
             gameConfigModel.SessionNum = gameConfigToken["SessionNum"].ToString(); 
             gameConfigModel.SessionTotal = gameConfigToken["SessionTotal"].ToString(); 
             gameConfigModel.EpochCount = gameConfigToken["EpochCount"].ToString(); 

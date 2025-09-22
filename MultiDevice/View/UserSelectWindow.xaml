@@ -16,7 +16,7 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
     </Window.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -29,7 +29,7 @@
             <Lay:LayTextBox x:Name="searchEdit" TextChanged="searchEdit_TextChanged" Watermark="请输入测试编号/患者姓名" Width="960">
             </Lay:LayTextBox>
         </Grid>
-        
+
         <DataGrid Grid.Row="1"
         x:Name="userGrid"
         AutoGenerateColumns="False"
@@ -152,23 +152,23 @@
                     <Lay:LayTextBlock Grid.Row="0" Grid.Column="0" Text="范式选择："/>
                     <Lay:LayComboBox  Grid.Row="0" Grid.Column="0" Height="36" VerticalAlignment="Bottom" x:Name="ParadigmComboBox" SelectionChanged="ParadigmComboBox_SelectionChanged"/>
 
-                    <Lay:LayTextBlock Grid.Row="0" Grid.Column="1" Text="游戏选择：" Margin="10,0,0,0"/>
-                    <Lay:LayComboBox  Grid.Row="0" Grid.Column="1" Height="36" VerticalAlignment="Bottom" Margin="10,0,0,0" x:Name="GameListComboBox"/>
+                    <Lay:LayTextBlock Grid.Row="0" Grid.Column="1" Text="游戏选择（可多选）：" Margin="10,0,0,0"/>
+                    <ListBox Grid.Row="0" Grid.Column="1" Height="137" VerticalAlignment="Bottom" Margin="0,0,8,6" x:Name="GameListBox" SelectionMode="Multiple" Grid.RowSpan="3"/>
 
-                    <Lay:LayTextBlock Grid.Row="1" Grid.Column="0" Text="总数(Session)："/>
-                    <Lay:LayNumericUpDown Grid.Row="1" Grid.Column="0" Height="30" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="205" x:Name="SessionTotal" Value="1"/>
+                    <Lay:LayTextBlock Grid.Row="0" Grid.Column="2" Text="总数(Session)："/>
+                    <Lay:LayNumericUpDown Grid.Row="0" Grid.Column="2" Height="30" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="205" x:Name="SessionTotal" Value="1"/>
 
-                    <Lay:LayTextBlock Grid.Row="1" Grid.Column="1" Text="序号(Session)："  Margin="10,0,0,0"/>
-                    <Lay:LayNumericUpDown Grid.Row="1" Grid.Column="1" Height="30" Width="195" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,0" x:Name="SessionNum" Value="1"/>
+                    <Lay:LayTextBlock Grid.Row="0" Grid.Column="3" Text="序号(Session)："  Margin="10,0,0,0"/>
+                    <Lay:LayNumericUpDown Grid.Row="0" Grid.Column="3" Height="30" Width="195" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10,0,0,0" x:Name="SessionNum" Value="1"/>
 
-                    <Lay:LayTextBlock Grid.Row="1" Grid.Column="2" Text="个数(Epoch)："  Margin="10,0,0,0"/>
-                    <Lay:LayNumericUpDown Grid.Row="1" Grid.Column="2" Height="30" Width="195" VerticalAlignment="Bottom" HorizontalAlignment="Left"  Margin="10,0,0,0" x:Name="EpochCount" Value="4"/>
+                    <Lay:LayTextBlock Grid.Column="2" Text="个数(Epoch)："  Margin="1,52,8,2" Grid.RowSpan="2"/>
+                    <Lay:LayNumericUpDown Grid.Row="1" Grid.Column="2" Height="30" Width="205" VerticalAlignment="Bottom" HorizontalAlignment="Left"  Margin="0,0,0,2" x:Name="EpochCount" Value="1"/>
 
                     <Lay:LayTextBlock Grid.Row="1" Grid.Column="3" Text="时长(Epoch)单位-分钟：" Margin="10,0,0,0"/>
-                    <Lay:LayNumericUpDown Grid.Row="1" Grid.Column="3" Height="30"  Width="195" VerticalAlignment="Bottom" HorizontalAlignment="Left"  Margin="10,0,0,0" x:Name="EpochTimes" Value="4"/>
+                    <Lay:LayNumericUpDown Grid.Row="1" Grid.Column="3" Height="30"  Width="195" VerticalAlignment="Bottom" HorizontalAlignment="Left"  Margin="10,0,0,0" x:Name="EpochTimes" Value="1"/>
 
-                    <Lay:LayTextBlock Grid.Row="3" Grid.Column="0" Text="时长(Break)单位-分钟："/>
-                    <Lay:LayNumericUpDown Grid.Row="3" Grid.Column="0" Height="30" Width="205" VerticalAlignment="Bottom" HorizontalAlignment="Left" x:Name="BreakTimes" Value="1"/>
+                    <Lay:LayTextBlock Grid.Row="3" Grid.Column="2" Text="时长(Break)单位-分钟："/>
+                    <Lay:LayNumericUpDown Grid.Row="3" Grid.Column="2" Height="30" Width="205" VerticalAlignment="Bottom" HorizontalAlignment="Left" x:Name="BreakTimes" Value="1"/>
                 </Grid>
             </Lay:LayGroupBox>
         </Grid>

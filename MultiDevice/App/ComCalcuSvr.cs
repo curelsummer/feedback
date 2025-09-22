@@ -1098,10 +1098,19 @@ namespace MultiDevice
                                     dataPack[i] = pack[7 + i];
                                 }
 
-                                string data = Encoding.UTF8.GetString(dataPack);
+                            // 详尽日志：来源IP、长度、原始HEX和解码文本
+                            try
+                            {
+                                string dataHex = BitConverter.ToString(dataPack);
+                                LogHelper.Log.LogDebug($"[0x88] From={clientList[nIndex].SocketIP} Len={datalength} Hex={dataHex}");
+                            }
+                            catch { }
+
+                            string data = Encoding.UTF8.GetString(dataPack);
+                            LogHelper.Log.LogDebug($"[0x88] Text='{data}'");
                                 if (data.Equals("GameOver"))
                                 {
-                                    LogHelper.Log.LogInfo("游戏完成");
+                                LogHelper.Log.LogInfo("[0x88] Received GameOver, trigger StopGameSever");
                                     Application.Current.Dispatcher.Invoke(() =>
                                     {
                                         if (null != App.deviceMainWindow)
@@ -1119,6 +1128,8 @@ namespace MultiDevice
                                     strMessage        = data.Split('&')[0];
                                     measurePowerValue = data.Split('&')[1];
                                 }
+
+                            LogHelper.Log.LogDebug($"[0x88] Message='{strMessage}', Power='{measurePowerValue}'");
 
                                 // 只记录游戏时间的数据
                                 if (!strMessage.Contains("校准") && !strMessage.Contains("静息"))

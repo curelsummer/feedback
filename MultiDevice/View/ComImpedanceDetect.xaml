@@ -37,6 +37,8 @@
                 <RowDefinition Height="60"/>
             </Grid.RowDefinitions>
             <Lay:LayButton Click="BtnStopMeasuring" Grid.Row="1" Margin="0,10,0,5" Type="Customize" Width="280" Height="38">开始游戏</Lay:LayButton>
+            <!--<Lay:LayButton Click="BtnStopMeasuringold" Grid.Row="1" Margin="0,10,0,5" Type="Customize" Width="280" Height="38">停止检测</Lay:LayButton>-->
+
             <ListView Grid.Row="0" Name="ImpedanceList" HorizontalContentAlignment="Center" FontSize="20" IsSynchronizedWithCurrentItem="True">
                 <ListView.View>
                     <GridView AllowsColumnReorder="True" >

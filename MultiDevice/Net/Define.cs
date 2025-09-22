@@ -42,6 +42,8 @@ namespace MultiDevice.Net
         GetParadigmTypeList,
         GetGameList,
         SaveReport,
+        StartSave,
+        AbortSave,
         CloseClient
     }
 

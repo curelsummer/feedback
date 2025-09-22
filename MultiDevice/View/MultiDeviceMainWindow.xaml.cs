@@ -52,8 +52,9 @@ namespace MultiDevice
         private DispatcherTimer warning_timer = new DispatcherTimer();
         // 游戏服务
         private ComCalcusvr     gameServer = null;
-        private GameConfigModel gameConfigModel = null;
+        public GameConfigModel gameConfigModel = null;
         private string titleUserInfo = "";
+        public GameRunTask PendingGameTask { get; set; }
 
         void CompositionTarget_Rendering(object sender, EventArgs e)
         {
@@ -465,6 +466,37 @@ namespace MultiDevice
         }
         #endregion
 
+        public void SetSavingUiState(bool isSaving)
+        {
+            if (isSaving)
+            {
+                if (detectMenuItem != null) detectMenuItem.IsEnabled = false;
+                if (settingsMenuItem != null) settingsMenuItem.IsEnabled = false;
+                if (start_Calusvr != null) start_Calusvr.IsEnabled = false;
+                if (settingsMenuItem != null) settingsMenuItem.Opacity = 0.5;
+                if (start_Calusvr != null) start_Calusvr.Opacity = 0.5;
+                if (detectMenuItem != null) detectMenuItem.Opacity = 0.5;
+
+                string savingIcon = "pack://application:,,,/icons/saving.png";
+                if (BDFSaveMenuItem != null) BDFSaveMenuItem.ToolTip = "正在接收数据";
+                if (saveDataIcon != null) saveDataIcon.Source = new BitmapImage(new Uri(savingIcon));
+            }
+            else
+            {
+                if (detectMenuItem != null) detectMenuItem.IsEnabled = true;
+                if (settingsMenuItem != null) settingsMenuItem.IsEnabled = true;
+                if (start_Calusvr != null) start_Calusvr.IsEnabled = true;
+                if (settingsMenuItem != null) settingsMenuItem.Opacity = 1;
+                if (start_Calusvr != null) start_Calusvr.Opacity = 1;
+                if (detectMenuItem != null) detectMenuItem.Opacity = 1;
+
+                string saveIcon = "pack://application:,,,/icons/save.png";
+                if (saveDataIcon != null) saveDataIcon.Source = new BitmapImage(new Uri(saveIcon));
+                if (BDFSaveMenuItem != null) BDFSaveMenuItem.ToolTip = "保存文件";
+                if (TimeCount != null) TimeCount.Content = " ";
+            }
+        }
+
         #region 滤波器开关控制
         /// <summary>
         /// 
@@ -834,13 +866,44 @@ namespace MultiDevice
         private void DetectWindow_OnFinishedDeleaget()
         {
             // 启动游戏服务
-            startGameSever();
+            // 优先：若用户在选择界面选择了多个游戏，则按所选顺序串行启动
+            if (gameConfigModel != null && gameConfigModel.GameSequence != null && gameConfigModel.GameSequence.Count > 0)
+            {
+                if (!GameSequenceScheduler.StartForSelectedGames(this, gameConfigModel))
+                {
+                    startGameSever();
+                }
+                return;
+            }
+
+            // 其次：若存在本地配置文件序列，则按配置串行
+            if (!GameSequenceScheduler.StartIfConfigured(this))
+            {
+                startGameSever();
+            }
         }
         #endregion
 
         #region 上位机端与游戏数据交换相关
         public void startGameSever()
         {
+            // 若服务端或界面已提供游戏序列，且当前未在串行执行，则优先用序列调度
+            if (PendingGameTask == null && gameConfigModel != null && gameConfigModel.GameSequence != null && gameConfigModel.GameSequence.Count > 0 && !GameSequenceScheduler.IsRunning)
+            {
+                if (GameSequenceScheduler.StartForSelectedGames(this, gameConfigModel))
+                {
+                    return;
+                }
+            }
+
+            // 若没有当前任务，且存在本地配置文件序列且未在运行，则优先交由调度器启动
+            if (PendingGameTask == null && GameSequenceScheduler.HasSequenceConfigured() && !GameSequenceScheduler.IsRunning)
+            {
+                if (GameSequenceScheduler.StartIfConfigured(this))
+                {
+                    return;
+                }
+            }
             if(null == App.CurrentUser)
             {
                 Message.ShowWarning("游戏服务启动", "请先选择用户!", TimeSpan.FromSeconds(3));
@@ -922,6 +985,7 @@ namespace MultiDevice
                 gameServer.client_RcvFail += CalcusvrClientRcvFail;
 
              
+                LogHelper.Log.LogDebug($"即将启动游戏，Game={gameConfigModel.Game}, SessionTotal={gameConfigModel.SessionTotal}, SessionNum={gameConfigModel.SessionNum}");
                 int serverPort  = 9264;
                 gameServer.startServer(serverPort, gameConfigModel);
                 Title = $"{gameConfigModel.UserInfo.TestNumber}-{gameConfigModel.UserInfo.Name} 正在游戏中...【{titleUserInfo}】-【终端名称:{App.ClientName}({App.ClientId})】";
@@ -931,8 +995,24 @@ namespace MultiDevice
                 GameSeverIcon.Source = new BitmapImage(new Uri(packUri));
                 // 记录开始时间
                 gameConfigModel.UserInfo.GameStartTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                // 启动游戏
-                GameAppRunHelper.App.AutoRunGameApp();
+                // 启动游戏（支持序列任务传参；若无任务则保持旧行为）
+                if (PendingGameTask != null)
+                {
+                    string exePath = PendingGameTask.ExePath;
+                    if (!System.IO.Path.IsPathRooted(exePath))
+                    {
+                        exePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, exePath);
+                    }
+                    // 确保不会复用上一个仍在运行的进程，避免参数未生效
+                    GameAppRunHelper.App.CloseProcessByName(PendingGameTask.ProcessName);
+                    System.Threading.Thread.Sleep(300);
+                    GameAppRunHelper.App.AutoRunGameApp(PendingGameTask.ProcessName, exePath, PendingGameTask.Args);
+                    PendingGameTask = null;
+                }
+                else
+                {
+                    GameAppRunHelper.App.AutoRunGameApp();
+                }
                 SQLiteDBService.DB.UpdateUserStatus(App.CurrentUser, "游戏中");
                 NetHelper.Net.sendMessageToSever(true, Cmd.Message,   $"{gameConfigModel.UserInfo.Name},游戏中...");
                 NetHelper.Net.sendMessageToSever(true, Cmd.GameStart, $"{gameConfigModel.UserInfo.Name},游戏开始成功!", 
@@ -998,7 +1078,14 @@ namespace MultiDevice
             if (null != gameConfigModel.UserInfo)
             {
                 FastReportHelper fastReportHelper = new FastReportHelper();
-                string filePath = fastReportHelper.createReportData(App.CurrentUser, this.gameConfigModel);
+                try
+                {
+                    bool bexists = System.IO.File.Exists(comDevice.BDFFilePath);
+                    long bsize = bexists ? new System.IO.FileInfo(comDevice.BDFFilePath).Length : 0;
+                    LogHelper.Log.LogDebug($"[Report] Start createReportData with BDF='{comDevice.BDFFilePath}', exists={bexists}, size={bsize} bytes");
+                }
+                catch { }
+                string filePath = fastReportHelper.createReportData(App.CurrentUser, this.gameConfigModel, comDevice.BDFFilePath);
 
                 JObject resultData = new JObject();
                 resultData["TestNumber"] = gameConfigModel.UserInfo.TestNumber;
@@ -1024,7 +1111,10 @@ namespace MultiDevice
             }
 
 
-            App.CurrentUser = null;
+            if (!GameSequenceScheduler.IsRunning)
+            {
+                App.CurrentUser = null;
+            }
         }
 
         private void CalcusvrClientRcvFail(object sender, FailArgs e)
