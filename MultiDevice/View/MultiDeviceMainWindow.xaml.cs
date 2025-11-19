@@ -1074,7 +1074,7 @@ namespace MultiDevice
                 NetHelper.Net.sendMessageToSever(true, Cmd.UploadResultFile, "客户端请求结果文件上传", resultData.ToString(Newtonsoft.Json.Formatting.None));
             }
 
-            // 生成结果报告
+            // 生成结果报告（后台异步，避免阻塞 UI）
             if (null != gameConfigModel.UserInfo)
             {
                 FastReportHelper fastReportHelper = new FastReportHelper();
@@ -1085,29 +1085,47 @@ namespace MultiDevice
                     LogHelper.Log.LogDebug($"[Report] Start createReportData with BDF='{comDevice.BDFFilePath}', exists={bexists}, size={bsize} bytes");
                 }
                 catch { }
-                string filePath = fastReportHelper.createReportData(App.CurrentUser, this.gameConfigModel, comDevice.BDFFilePath);
 
-                JObject resultData = new JObject();
-                resultData["TestNumber"] = gameConfigModel.UserInfo.TestNumber;
-                resultData["UserName"] = gameConfigModel.UserInfo.Name;
-                resultData["DetectNumber"] = gameConfigModel.UserInfo.DetectNumber;
-                // 装换游戏字段
-                string game = "";
-                foreach (var item in gameConfigModel.paradigmSettings.GameList)
+                Task.Run(() =>
                 {
-                    if (item.Value == gameConfigModel.Game)
+                    try
                     {
-                        game = item.Key;
-                        break;
+                        string filePath = fastReportHelper.createReportData(App.CurrentUser, this.gameConfigModel, comDevice.BDFFilePath);
+
+                        JObject resultData = new JObject();
+                        resultData["TestNumber"] = gameConfigModel.UserInfo.TestNumber;
+                        resultData["UserName"] = gameConfigModel.UserInfo.Name;
+                        resultData["DetectNumber"] = gameConfigModel.UserInfo.DetectNumber;
+                        // 装换游戏字段
+                        string game = "";
+                        foreach (var item in gameConfigModel.paradigmSettings.GameList)
+                        {
+                            if (item.Value == gameConfigModel.Game)
+                            {
+                                game = item.Key;
+                                break;
+                            }
+                        }
+                        resultData["Game"] = game;
+                        resultData["UserSex"] = gameConfigModel.UserInfo.Sex;
+                        resultData["UserAge"] = gameConfigModel.UserInfo.Age;
+                        resultData["CreateTime"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                        resultData["FilePath"] = filePath;
+                        resultData["Client"] = $"{SQLiteDBService.DB.ReadSettings("App", "ClientName")}_{SQLiteDBService.DB.ReadSettings("App", "ClientId")}";
+
+                        // 回到 UI 线程发送网络通知（若需要 UI 线程）
+                        Dispatcher.Invoke(() =>
+                        {
+                            NetHelper.Net.sendMessageToSever(true, Cmd.UploadResultFilePdf, "客户端请求结果文件上传", resultData.ToString(Newtonsoft.Json.Formatting.None));
+                            try { Message.ShowSuccess("报告生成", "PDF 报告已生成", TimeSpan.FromSeconds(2)); } catch {}
+                        });
                     }
-                }
-                resultData["Game"] = game;
-                resultData["UserSex"] = gameConfigModel.UserInfo.Sex;
-                resultData["UserAge"] = gameConfigModel.UserInfo.Age;
-                resultData["CreateTime"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                resultData["FilePath"] = filePath;
-                resultData["Client"] = $"{SQLiteDBService.DB.ReadSettings("App", "ClientName")}_{SQLiteDBService.DB.ReadSettings("App", "ClientId")}";
-                NetHelper.Net.sendMessageToSever(true, Cmd.UploadResultFilePdf, "客户端请求结果文件上传", resultData.ToString(Newtonsoft.Json.Formatting.None));
+                    catch (Exception ex)
+                    {
+                        try { Dispatcher.Invoke(() => Message.ShowError("报告生成", $"生成失败: {ex.Message}", TimeSpan.FromSeconds(3))); } catch {}
+                        try { LogHelper.Log.LogError($"[Report] async createReportData error: {ex.Message}"); } catch {}
+                    }
+                });
             }
 
 
